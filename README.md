@@ -349,6 +349,29 @@ BOSS直聘/拉勾/猎聘投递跟踪与跟进节奏：
 
 ---
 
+## 关于 PROMPT-MERGED.md
+
+`PROMPT-MERGED.md` 是本项目所有 Skill 的**精简合并版**，适用于以下场景：
+
+| 使用场景 | 推荐方式 |
+|---------|---------|
+| **Trae IDE / VS Code 等支持 Skill 的 Agent** | 直接打开项目，Agent 会自动加载各独立 Skill 文件（SKILL.md、SKILL-INTERVIEW.md 等），功能完整 |
+| **网页版 AI（ChatGPT、文心一言等）** | 复制 `PROMPT-MERGED.md` 内容作为系统提示词，可调用简历优化、JD 分析、面试准备等核心功能 |
+
+**PROMPT-MERGED.md 的局限性**：
+
+- 仅包含简历优化、JD 分析、面试准备的核心流程，**不包含**投递跟踪、薪资谈判、面试复盘、HR 审核等独立 Skill 的完整功能
+- 无法调用 `generate_resume.py` 脚本（PDF/Word 读取、HTML 生成）
+- 无法引用 `references/` 目录下的独立参考文档（JD 分析规则、STAR 方法论等）
+- 适合快速使用，但功能不如完整项目丰富
+
+**推荐用法**：
+
+- 如果你使用支持 Skill 的 AI Agent（如 Trae IDE），**直接克隆本项目**，Agent 会自动识别并加载所有 Skill
+- 如果你使用网页版 AI，复制 `PROMPT-MERGED.md` 作为临时方案，但建议后续迁移到完整项目以获得全部功能
+
+---
+
 ## 常见问题
 
 **Q：PDF 简历提取失败怎么办？**
