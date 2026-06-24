@@ -96,7 +96,7 @@ description: |
     {
       "id": 1,
       "company": "飞虎互动",
-      "role": "Java开发工程师",
+      "role": "目标岗位A",
       "platform": "BOSS直聘",
       "applied_date": "XXXX-XX-XX",
       "status": "已读未回",
@@ -110,7 +110,7 @@ description: |
         {
           "date": "XXXX-XX-XX",
           "action": "首次投递",
-          "message": "您好，看到贵司Java开发工程师岗位非常匹配..."
+          "message": "您好，看到贵司目标岗位A岗位非常匹配..."
         }
       ]
     }
