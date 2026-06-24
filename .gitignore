@@ -8,6 +8,10 @@ Resume-Optimizer-main/
 ResumeSkills-main/
 
 # 个人信息 / 敏感数据（含姓名、手机、邮箱、出生日期等，不可上传）
+# 匹配格式：姓名_岗位.json、姓名_resume.json 等（中文姓名通常为2-4个字符+下划线）
+??_*
+???_*
+????_*
 *_resume_*.json
 *_resume_*.html
 resume_master.json
