@@ -1,0 +1,35 @@
+# 参考项目（仅供借鉴，不纳入本仓库）
+ai-agent-daily-mentor-main/
+avoid-ai-writing-main/
+career-ops-main/
+LLMInternSkill-main/
+resume-application-agent-skill-main/
+Resume-Optimizer-main/
+ResumeSkills-main/
+
+# 个人信息 / 敏感数据（含姓名、手机、邮箱、出生日期等，不可上传）
+赵晨旭_*.json
+赵晨旭_*.html
+resume_master.json
+career_tracker.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Trae
+.trae/
