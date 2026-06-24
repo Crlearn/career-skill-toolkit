@@ -13,6 +13,9 @@ ResumeSkills-main/
 resume_master.json
 career_tracker.json
 
+# 简历版本文件（用户本地保存，不上传）
+resume_versions/
+
 # Python
 __pycache__/
 *.pyc

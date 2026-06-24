@@ -96,7 +96,7 @@ description: |
 - **从零新建/创建简历**（无简历文件，通过对话收集信息）
 - **根据JD写简历**（有JD但无简历文件）
 - **根据JD优化工作经历**
-- **生成核心优势 / 打招呼用语**
+- **生成核心优势**
 - **JD硬技能提取**
 
 ## 主简历库（Master Resume）
@@ -242,7 +242,7 @@ python generate_resume.py read "<简历文件路径>"
 > |------|------|------|------|
 > | 姓名 | ✅ | 真实姓名 | 张三 |
 > | 性别 | ✅ | 男/女 | 男 |
-> | 出生日期 | ✅ | 年-月 | 2002-06 |
+> | 出生日期 | ✅ | YYYY-MM | 2002-06 |
 > | 现居城市 | ✅ | 省-市 | XX省-XX市 |
 > | 户籍城市 | ✅ | 省-市（部分国企/体制内岗位关注） | XX省-XX市 |
 > | 手机 | ✅ | 11位手机号 | 13800138000 |
@@ -251,7 +251,7 @@ python generate_resume.py read "<简历文件路径>"
 > | 意向行业 | ⬜ | 如互联网、金融、制造业等 | 互联网 |
 > | 目标城市 | ⬜ | 期望工作城市 | 南京/杭州 |
 > | 期望薪资 | ⬜ | 如 8K-12K，可不填 | 8K-12K |
-> | 求职类型 | ✅ | 全职/实习 | 全职 |
+> | 求职类型 | ✅ | 全职/实习/兼职 | 全职 |
 
 ---
 
@@ -264,8 +264,8 @@ python generate_resume.py read "<简历文件路径>"
 > | 学校名称 | ✅ | 全称 | XX大学 |
 > | 学历层次 | ✅ | 大专/本科/硕士/博士 | 本科 |
 > | 专业名称 | ✅ | 全称 | 软件工程技术 |
-> | 入学时间 | ✅ | 年.月 | 2022.09 |
-> | 毕业时间 | ✅ | 年.月 或 "至今" | 2026.06[预计] |
+> | 入学时间 | ✅ | YYYY.MM | 2022.09 |
+> | 毕业时间 | ✅ | YYYY.MM 或 "至今" | 2026.06 或 至今 |
 > | 学校标签 | ⬜ | 211/985/双一流，可选 | — |
 > | 经历描述 | ⬜ | 主修课程、GPA/排名等 | 主修：Java程序设计、数据结构…；GPA 3.5/4.0 |
 
@@ -284,8 +284,8 @@ python generate_resume.py read "<简历文件路径>"
 > |------|------|------|------|
 > | 项目名称 | ✅ | 项目全称 | 智慧停车场管理系统 |
 > | 担任角色 | ✅ | 你在项目中的职务 | Java后端开发 |
-> | 开始时间 | ✅ | 年.月 | 2025.12 |
-> | 结束时间 | ✅ | 年.月 或 "至今" | 至今 |
+> | 开始时间 | ✅ | YYYY.MM | 2025.12 |
+> | 结束时间 | ✅ | YYYY.MM 或 "至今" | 2026.06 或 至今 |
 > | 技术栈 | ✅ | 使用的技术和工具 | Spring Boot、MySQL、Redis |
 > | 项目描述 | ✅ | 你做了什么（口语化即可，我会润色） | 用Spring Boot搭了3个微服务… |
 > | 成果/数据 | ⬜ | 可量化的结果 | 识别准确率95%以上 |
@@ -459,7 +459,7 @@ python generate_resume.py read "<简历文件路径>"
 
 ### Step 2.5：JD 硬技能提取 & 核心优势生成
 
-基于 JD 分析结果，提取岗位所需的 5-10 个硬技能及经验关键词，从中选择用户具备或容易学习的 3 个左右，生成为核心优势和招聘平台打招呼用语。
+基于 JD 分析结果，提取岗位所需的 5-10 个硬技能及经验关键词，从中选择用户具备或容易学习的 3 个左右，生成为核心优势。**打招呼用语为可选**，仅在用户明确要求时生成。
 
 **提取规则**：
 
@@ -475,7 +475,11 @@ python generate_resume.py read "<简历文件路径>"
 3、[经验描述]：[具体场景 + 产出/成果]
 ```
 
-**打招呼用语格式**：
+**打招呼用语（可选）**：
+
+> 仅在用户说"生成打招呼""打招呼话术""BOSS打招呼"时生成，默认不自动输出。
+
+格式：
 
 ```
 您好，看到贵司[公司名][岗位名]非常匹配：
@@ -494,7 +498,7 @@ python generate_resume.py read "<简历文件路径>"
 3、独立交付能力：从需求分析到代码落地独立完成全流程，已交付停车场管理系统 3 个微服务模块
 ```
 
-打招呼用语：
+打招呼用语（用户要求时才生成）：
 ```
 您好，看到贵司Java开发工程师岗位非常匹配：
 1、熟练掌握 Spring Boot 微服务开发，具备 MySQL 数据库设计与 Redis 缓存实践经验；
@@ -641,6 +645,18 @@ python generate_resume.py read "<简历文件路径>"
 python generate_resume.py build <json_file> <output_path>
 ```
 
+**页数选择**：默认生成一页简历，经历丰富时可指定两页：
+
+```
+python generate_resume.py build <json_file> <output_path> --pages 2
+```
+
+**字段不匹配怎么办**：`build` 命令会自动执行字段映射，将"姓名"→name、"手机"→phone 等非标准字段名转换为标准模板字段。也可用 `map` 命令单独查看映射结果：
+
+```
+python generate_resume.py map <json_file> [output_path]
+```
+
 **JSON 数据结构**：
 
 ```json
@@ -658,6 +674,7 @@ python generate_resume.py build <json_file> <output_path>
   "expected_salary": "期望薪资（可选，如 8K-12K）",
   "job_type": "求职类型（全职/实习）",
   "photo": "证件照文件绝对路径（可选）",
+  "core_advantages": ["核心优势1", "核心优势2"],
   "education": [
     {
       "school": "学校",
@@ -675,6 +692,7 @@ python generate_resume.py build <json_file> <output_path>
       "company": "公司/组织/项目名称",
       "role": "职位名称",
       "period": "时间段",
+      "tags": ["Java", "Spring Boot"],
       "bullets": [
         {"label": "标签名称", "text": "具体描述"}
       ]
@@ -697,22 +715,46 @@ python generate_resume.py build <json_file> <output_path>
 - `gender`、`birth_date`、`current_city`、`domicile_city`：国内简历必填，Header 第一行展示
 - `target_industry`、`target_city`、`expected_salary`、`job_type`：求职意向补充信息，Header 第三行展示
 - `photo`：绝对路径，脚本自动用 Pillow 缩放并转为 base64 内嵌
+- `core_advantages`：核心优势模块，2-3 条硬技能+经验描述，显示在 Header 下方
 - `education`：**数组格式**，支持多条教育经历（向后兼容：单个对象也可正常渲染）
 - `experience[].section`：决定经历分组
+- `experience[].tags`：与 JD 关键词匹配的标签，用于主简历库抽取
 - `experience[].bullets`：每个 bullet 由 `label`（加粗标签）和 `text`（描述内容）组成
 - `awards`：荣誉奖励模块，可选。每项包含 name（必填）、level（可选）、time（可选）
 - `portfolio`：作品集模块，可选。每项包含 title（必填）、url（可选）
 - `self_evaluation`：支持两种格式 — 纯文本字符串 或 分点数组 `[{label, text}]`
+
+**字段映射表**（非标准字段名自动映射为标准字段）：
+
+| 标准字段 | 可识别的别名 |
+|---------|------------|
+| name | 姓名、名字、fullName、full_name |
+| phone | 手机、电话、联系电话、联系方式、mobile |
+| email | 邮箱、电子邮件 |
+| objective | 求职意向、意向岗位、目标岗位、position |
+| education[].school | 学校、院校、university |
+| education[].degree | 学历、学位 |
+| education[].major | 专业、专业名称 |
+| experience[].company | 公司、单位、组织、项目名、organization |
+| experience[].role | 职位、岗位、角色、title |
+
+> 完整映射表见 `generate_resume.py` 中的 `FIELD_ALIASES`、`EDU_ALIASES`、`EXP_ALIASES` 等常量。
 
 **CLI 命令**：
 
 | 命令 | 用法 | 说明 |
 |------|------|------|
 | `read` | `python generate_resume.py read <文件路径>` | 读取 PDF/Word/TXT 简历 |
-| `build` | `python generate_resume.py build <json文件> <输出路径>` | 从 JSON 生成 HTML 简历（含校验） |
+| `build` | `python generate_resume.py build <json文件> <输出路径> [--pages 1\|2]` | 从 JSON 生成 HTML 简历（自动字段映射+校验） |
 | `init` | `python generate_resume.py init [输出路径]` | 生成空白简历 JSON 模板 |
+| `setup` | `python generate_resume.py setup` | 一键初始化（检查依赖+创建模板文件） |
+| `map` | `python generate_resume.py map <json文件> [输出路径]` | 字段映射：查看非标准字段的映射结果 |
+| `version save` | `python generate_resume.py version save <json> <名称>` | 保存当前简历版本 |
+| `version list` | `python generate_resume.py version list` | 列出所有已保存版本 |
+| `version diff` | `python generate_resume.py version diff <v1> <v2>` | 对比两个版本的差异 |
+| `version restore` | `python generate_resume.py version restore <名称>` | 回滚到指定版本 |
 
-**build 校验规则**：必填字段 name、phone、email、objective；教育经历必填 school、degree、major、period
+**build 校验规则**：必填字段 name、phone、email、objective；教育经历必填 school、degree、major、period。校验前会自动执行字段映射。
 
 **Python 依赖**：
 

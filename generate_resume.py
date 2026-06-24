@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-简历优化工具：读取简历文件 + 生成 HTML 简历
+简历优化工具：读取简历文件 + 生成 HTML 简历 + 版本管理 + 字段映射
 
 用法:
   python generate_resume.py read <file_path>          读取 PDF/Word/TXT 简历，输出纯文本 JSON
   python generate_resume.py build <json_file> <output> 读取结构化 JSON，生成 HTML 简历文件
+      可选: --pages 1|2  指定简历页数（默认1页，2页时内容更宽松）
   python generate_resume.py init [output_path]         生成空白简历 JSON 模板
   python generate_resume.py setup                     一键初始化（检查依赖+创建模板文件）
+  python generate_resume.py map <json> [output]       字段映射：将非标准字段名映射为标准模板字段
+  python generate_resume.py version save <json> <name> 保存当前简历版本
+  python generate_resume.py version list               列出所有已保存版本
+  python generate_resume.py version diff <v1> <v2>     对比两个版本的差异
+  python generate_resume.py version restore <name>     回滚到指定版本
+
+字段映射说明:
+  build 命令会自动执行字段映射，将"姓名"→name、"手机"→phone 等非标准字段名
+  转换为标准模板字段。也可用 map 命令单独执行映射，查看映射结果后再 build。
 """
 
 import json
@@ -94,23 +104,40 @@ BLANK_TEMPLATE = {
 REQUIRED_FIELDS = ["name", "phone", "email", "objective"]
 
 
-def validate_resume(data: dict) -> list:
-    """校验简历 JSON 必填字段，返回错误列表。"""
+def validate_resume(data: dict, strict: bool = True) -> list:
+    """校验简历 JSON 必填字段，返回错误列表。
+    strict=True: 缺必填字段报错（build 时使用）
+    strict=False: 缺必填字段仅警告（map 模式使用）
+    """
     errors = []
+    warnings = []
     for field in REQUIRED_FIELDS:
         if not data.get(field):
-            errors.append(f"缺少必填字段: {field}")
+            msg = f"缺少必填字段: {field}"
+            if strict:
+                errors.append(msg)
+            else:
+                warnings.append(msg)
     edu = data.get("education", [])
     if isinstance(edu, dict):
         edu = [edu]
     if not edu:
-        errors.append("缺少教育经历")
+        if strict:
+            errors.append("缺少教育经历")
+        else:
+            warnings.append("缺少教育经历")
     else:
         for i, e in enumerate(edu):
             for ef in ["school", "degree", "major", "period"]:
                 if not e.get(ef):
-                    errors.append(f"教育经历[{i}] 缺少必填字段: {ef}")
-    return errors
+                    msg = f"教育经历[{i}] 缺少必填字段: {ef}"
+                    if strict:
+                        errors.append(msg)
+                    else:
+                        warnings.append(msg)
+    if strict:
+        return errors
+    return {"errors": errors, "warnings": warnings}
 
 
 # ---------------------------------------------------------------------------
@@ -492,7 +519,24 @@ body {{
   .exp-header {{ page-break-after: avoid; }}
   .bullet-list {{ page-break-inside: avoid; }}
   .edu-row {{ page-break-inside: avoid; }}
+  .award-row {{ page-break-inside: avoid; }}
+  .skill-item {{ page-break-inside: avoid; }}
   .no-print {{ display: none !important; }}
+  /* 打印预览提示 */
+  .print-hint {{
+    display: block;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: #856404;
+  }}
+  .print-hint::before {{
+    content: "🖨️ 打印提示：";
+    font-weight: bold;
+  }}
 }}
 /* ---- English Layout ---- */
 .resume.en .header-left h1 {{
@@ -520,6 +564,9 @@ body {{
 </head>
 <body>
 <div class="resume{lang_class}" id="resume">
+  <div class="print-hint no-print">
+    {print_hint_text}
+  </div>
   {header_html}
   {core_advantages_html}
   {education_html}
@@ -533,13 +580,12 @@ body {{
 (function() {{
   var el = document.getElementById("resume");
   if (!el) return;
-  // A4 可用高度 = 297mm - 上边距18mm - 下边距14mm = 265mm
-  // 1mm ≈ 3.78px @96dpi → 可用高度 ≈ 265 * 3.78 ≈ 1001.7px
-  // 超过 3 页时自动缩放
+  var maxPages = {max_pages};
   var pageH = 297 - 18 - 14;
-  if (el.scrollHeight > pageH * 3.78) {{
+  var totalH = pageH * 3.78 * maxPages;
+  if (el.scrollHeight > totalH) {{
     el.style.transformOrigin = "top left";
-    var scale = (pageH * 3.78) / el.scrollHeight;
+    var scale = totalH / el.scrollHeight;
     el.style.transform = "scale(" + scale.toFixed(4) + ")";
     el.style.width = (100 / scale).toFixed(2) + "%";
   }}
@@ -812,7 +858,7 @@ def _detect_language(data: dict) -> str:
     return "" if has_cjk else " en"
 
 
-def generate_html(resume_data: dict) -> str:
+def generate_html(resume_data: dict, pages: int = 1) -> str:
     lang_class = _detect_language(resume_data)
     header_html = _build_header_html(resume_data)
     core_advantages_html = _build_core_advantages_html(resume_data.get("core_advantages", []))
@@ -822,9 +868,15 @@ def generate_html(resume_data: dict) -> str:
     awards_html = _build_awards_html(resume_data.get("awards", []))
     portfolio_html = _build_portfolio_html(resume_data.get("portfolio", []))
     self_evaluation_html = _build_self_evaluation_html(resume_data.get("self_evaluation", ""))
+    if pages == 1:
+        print_hint_text = '按 Ctrl+P 打印为 PDF，建议勾选"背景图形"以保留样式。简历内容已优化为 A4 一页。'
+    else:
+        print_hint_text = f'按 Ctrl+P 打印为 PDF，建议勾选"背景图形"以保留样式。简历内容已优化为 A4 {pages} 页。'
     return HTML_TEMPLATE.format(
         name=_esc(resume_data.get("name", "简历")),
         lang_class=lang_class,
+        print_hint_text=print_hint_text,
+        max_pages=pages,
         header_html=header_html,
         core_advantages_html=core_advantages_html,
         education_html=education_html,
@@ -839,6 +891,151 @@ def generate_html(resume_data: dict) -> str:
 # ---------------------------------------------------------------------------
 # Setup 命令
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# 字段映射与容错
+# ---------------------------------------------------------------------------
+
+FIELD_ALIASES = {
+    "name": ["姓名", "名字", "fullName", "full_name", "candidate_name"],
+    "gender": ["性别", "sex"],
+    "birth_date": ["出生日期", "生日", "出生年月", "birthday", "date_of_birth", "dob"],
+    "current_city": ["现居城市", "现居地", "居住城市", "current_location", "location"],
+    "domicile_city": ["户籍城市", "户籍", "籍贯", "hometown", "domicile"],
+    "phone": ["手机", "电话", "联系电话", "联系方式", "mobile", "tel", "telephone", "cell"],
+    "email": ["邮箱", "电子邮件", "email_address", "e_mail"],
+    "objective": ["求职意向", "意向岗位", "目标岗位", "应聘岗位", "target_position", "position", "job_title"],
+    "target_industry": ["意向行业", "目标行业", "industry"],
+    "target_city": ["目标城市", "期望城市", "preferred_location"],
+    "expected_salary": ["期望薪资", "期望月薪", "salary_expectation", "expected_salary_range"],
+    "job_type": ["求职类型", "工作类型", "employment_type", "work_type"],
+    "photo": ["照片", "证件照", "头像", "avatar", "profile_photo"],
+    "self_evaluation": ["自我评价", "个人评价", "个人总结", "summary", "profile", "about_me"],
+    "core_advantages": ["核心优势", "个人优势", "核心竞争力", "key_strengths", "highlights"],
+}
+
+EDU_ALIASES = {
+    "school": ["学校", "院校", "university", "college", "institution"],
+    "degree": ["学历", "学位", "degree_level"],
+    "major": ["专业", "专业名称", "field", "subject"],
+    "period": ["时间段", "时间", "起止时间", "date", "duration", "graduation_date"],
+    "school_tag": ["标签", "学校标签", "school_level", "tag"],
+    "gpa": ["绩点", "GPA", "grade_point_average"],
+    "courses": ["课程", "主修课程", "core_courses", "relevant_courses"],
+}
+
+EXP_ALIASES = {
+    "section": ["分类", "类型", "category", "type"],
+    "company": ["公司", "单位", "组织", "项目名", "organization", "employer", "project_name"],
+    "role": ["职位", "岗位", "角色", "title", "position", "role_title"],
+    "period": ["时间段", "时间", "起止时间", "date", "duration"],
+}
+
+SKILL_ALIASES = {
+    "label": ["类别", "分类", "category", "skill_category"],
+    "text": ["描述", "内容", "details", "description"],
+}
+
+AWARD_ALIASES = {
+    "name": ["奖项", "奖项名称", "award", "title"],
+    "level": ["级别", "等级", "rank"],
+    "time": ["时间", "获奖时间", "date", "year"],
+}
+
+
+def _map_field(source_key: str, aliases: dict) -> str:
+    key_lower = source_key.lower().strip()
+    for target, alias_list in aliases.items():
+        if key_lower == target.lower():
+            return target
+        for alias in alias_list:
+            if key_lower == alias.lower():
+                return target
+    return source_key
+
+
+def _map_dict(data: dict, aliases: dict) -> dict:
+    mapped = {}
+    used_keys = set()
+    for target, alias_list in aliases.items():
+        if target in data:
+            mapped[target] = data[target]
+            used_keys.add(target)
+            continue
+        for alias in alias_list:
+            if alias in data:
+                mapped[target] = data[alias]
+                used_keys.add(alias)
+                break
+    for k, v in data.items():
+        if k not in used_keys and k not in mapped:
+            mapped[k] = v
+    return mapped
+
+
+def map_resume(data: dict) -> dict:
+    """将任意结构的简历 JSON 映射为标准模板结构，保留无法映射的字段。"""
+    if not isinstance(data, dict):
+        return data
+    mapped = _map_dict(data, FIELD_ALIASES)
+
+    edu = mapped.get("education", [])
+    if isinstance(edu, dict):
+        edu = [edu]
+    if isinstance(edu, list):
+        mapped["education"] = [_map_dict(e, EDU_ALIASES) if isinstance(e, dict) else e for e in edu]
+
+    exp = mapped.get("experience", [])
+    if isinstance(exp, dict):
+        exp = [exp]
+    if isinstance(exp, list):
+        mapped["experience"] = [_map_dict(e, EXP_ALIASES) if isinstance(e, dict) else e for e in exp]
+
+    skills = mapped.get("skills", [])
+    if isinstance(skills, dict):
+        skills = [skills]
+    if isinstance(skills, list):
+        mapped["skills"] = [_map_dict(s, SKILL_ALIASES) if isinstance(s, dict) else s for s in skills]
+
+    awards = mapped.get("awards", [])
+    if isinstance(awards, dict):
+        awards = [awards]
+    if isinstance(awards, list):
+        mapped["awards"] = [_map_dict(a, AWARD_ALIASES) if isinstance(a, dict) else a for a in awards]
+
+    return mapped
+
+
+def _cmd_map(json_path: str, output_path: str = "") -> int:
+    if not os.path.isfile(json_path):
+        print(json.dumps({"error": f"JSON 文件不存在: {json_path}"}, ensure_ascii=False))
+        return 1
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    mapped = map_resume(data)
+    if not output_path:
+        base, ext = os.path.splitext(json_path)
+        output_path = f"{base}_mapped{ext}"
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(mapped, f, ensure_ascii=False, indent=2)
+
+    diff_report = []
+    for key in data:
+        mapped_key = _map_field(key, FIELD_ALIASES)
+        if mapped_key != key:
+            diff_report.append(f"  {key} → {mapped_key}")
+    for key in mapped:
+        if key not in data:
+            diff_report.append(f"  (新增) {key}")
+
+    print(json.dumps({
+        "status": "success",
+        "message": f"字段映射完成，共处理 {len(data)} 个顶层字段",
+        "output_path": os.path.abspath(output_path),
+        "field_mapping": diff_report if diff_report else ["  无需映射，字段已匹配"],
+    }, ensure_ascii=False, indent=2))
+    return 0
+
 
 def _cmd_setup() -> int:
     import subprocess
@@ -913,12 +1110,192 @@ def _cmd_setup() -> int:
 
 
 # ---------------------------------------------------------------------------
+# 版本管理
+# ---------------------------------------------------------------------------
+
+VERSIONS_DIR = "resume_versions"
+
+
+def _cmd_version(action: str, json_path: str = "", version_name: str = "") -> int:
+    """简历版本管理：保存、列出、对比、回滚。"""
+    versions_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), VERSIONS_DIR)
+
+    if action == "save":
+        if not json_path or not version_name:
+            print(json.dumps({"error": "用法: python generate_resume.py version save <json_file> <version_name>"}, ensure_ascii=False))
+            return 1
+        if not os.path.isfile(json_path):
+            print(json.dumps({"error": f"JSON 文件不存在: {json_path}"}, ensure_ascii=False))
+            return 1
+        os.makedirs(versions_dir, exist_ok=True)
+        from datetime import datetime
+        safe_name = version_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+        dest = os.path.join(versions_dir, f"{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        data["_version_meta"] = {
+            "name": version_name,
+            "saved_at": datetime.now().isoformat(),
+            "source_file": json_path,
+        }
+        with open(dest, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(json.dumps({
+            "status": "success",
+            "message": f"版本已保存: {version_name}",
+            "path": dest,
+        }, ensure_ascii=False, indent=2))
+        return 0
+
+    elif action == "list":
+        if not os.path.isdir(versions_dir):
+            print(json.dumps({"status": "success", "versions": []}, ensure_ascii=False, indent=2))
+            return 0
+        versions = []
+        for fname in sorted(os.listdir(versions_dir)):
+            if fname.endswith(".json"):
+                fpath = os.path.join(versions_dir, fname)
+                try:
+                    with open(fpath, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    meta = data.get("_version_meta", {})
+                    versions.append({
+                        "file": fname,
+                        "name": meta.get("name", fname),
+                        "saved_at": meta.get("saved_at", ""),
+                        "source": meta.get("source_file", ""),
+                    })
+                except Exception:
+                    versions.append({"file": fname, "name": fname, "saved_at": "", "source": ""})
+        print(json.dumps({"status": "success", "versions": versions}, ensure_ascii=False, indent=2))
+        return 0
+
+    elif action == "diff":
+        if len(sys.argv) < 5:
+            print(json.dumps({"error": "用法: python generate_resume.py version diff <version1> <version2>"}, ensure_ascii=False))
+            return 1
+        v1_name = sys.argv[3]
+        v2_name = sys.argv[4]
+        if not os.path.isdir(versions_dir):
+            print(json.dumps({"error": "没有保存的版本"}, ensure_ascii=False))
+            return 1
+        v1_path = v2_path = None
+        for fname in os.listdir(versions_dir):
+            if fname.endswith(".json"):
+                try:
+                    with open(os.path.join(versions_dir, fname), "r", encoding="utf-8") as f:
+                        d = json.load(f)
+                    meta = d.get("_version_meta", {})
+                    if meta.get("name") == v1_name:
+                        v1_path = os.path.join(versions_dir, fname)
+                    if meta.get("name") == v2_name:
+                        v2_path = os.path.join(versions_dir, fname)
+                except Exception:
+                    pass
+        if not v1_path or not v2_path:
+            print(json.dumps({"error": f"找不到版本: {v1_name} 或 {v2_name}，先用 version list 查看可用版本"}, ensure_ascii=False))
+            return 1
+        with open(v1_path, "r", encoding="utf-8") as f:
+            d1 = json.load(f)
+        with open(v2_path, "r", encoding="utf-8") as f:
+            d2 = json.load(f)
+        diff = _diff_resume(d1, d2)
+        print(json.dumps({
+            "status": "success",
+            "version1": v1_name,
+            "version2": v2_name,
+            "diff": diff,
+        }, ensure_ascii=False, indent=2))
+        return 0
+
+    elif action == "restore":
+        if not version_name:
+            print(json.dumps({"error": "用法: python generate_resume.py version restore <version_name> [output_path]"}, ensure_ascii=False))
+            return 1
+        if not os.path.isdir(versions_dir):
+            print(json.dumps({"error": "没有保存的版本"}, ensure_ascii=False))
+            return 1
+        target_path = None
+        for fname in os.listdir(versions_dir):
+            if fname.endswith(".json"):
+                try:
+                    with open(os.path.join(versions_dir, fname), "r", encoding="utf-8") as f:
+                        d = json.load(f)
+                    meta = d.get("_version_meta", {})
+                    if meta.get("name") == version_name:
+                        target_path = os.path.join(versions_dir, fname)
+                        break
+                except Exception:
+                    pass
+        if not target_path:
+            print(json.dumps({"error": f"找不到版本: {version_name}"}, ensure_ascii=False))
+            return 1
+        output_path = sys.argv[4] if len(sys.argv) >= 5 else version_name.replace("/", "_").replace("\\", "_") + "_restored.json"
+        with open(target_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        data.pop("_version_meta", None)
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(json.dumps({
+            "status": "success",
+            "message": f"已回滚到版本: {version_name}",
+            "output_path": os.path.abspath(output_path),
+        }, ensure_ascii=False, indent=2))
+        return 0
+
+    else:
+        print(json.dumps({"error": f"未知版本操作: {action}，支持 save / list / diff / restore"}, ensure_ascii=False))
+        return 1
+
+
+def _diff_resume(old: dict, new: dict) -> dict:
+    """对比两个简历版本的差异，返回结构化 diff。"""
+    diff = {"added": [], "removed": [], "modified": []}
+
+    def _compare_list(old_list, new_list, section_name):
+        old_items = {item.get("company", "") + item.get("role", ""): item for item in old_list}
+        new_items = {item.get("company", "") + item.get("role", ""): item for item in new_list}
+        for key in new_items:
+            if key not in old_items:
+                diff["added"].append(f"{section_name}: 新增 {key}")
+            else:
+                old_bullets = [b.get("text", "") for b in old_items[key].get("bullets", [])]
+                new_bullets = [b.get("text", "") for b in new_items[key].get("bullets", [])]
+                if old_bullets != new_bullets:
+                    diff["modified"].append(f"{section_name}: {key} 内容已修改")
+        for key in old_items:
+            if key not in new_items:
+                diff["removed"].append(f"{section_name}: 删除 {key}")
+
+    for section in ["education", "experience", "skills", "awards", "portfolio"]:
+        old_sec = old.get(section, [])
+        new_sec = new.get(section, [])
+        if isinstance(old_sec, dict):
+            old_sec = [old_sec]
+        if isinstance(new_sec, dict):
+            new_sec = [new_sec]
+        if old_sec != new_sec:
+            _compare_list(old_sec, new_sec, section)
+
+    for field in ["name", "objective", "self_evaluation", "core_advantages"]:
+        if old.get(field) != new.get(field):
+            if old.get(field) and not new.get(field):
+                diff["removed"].append(f"{field}: 已删除")
+            elif not old.get(field) and new.get(field):
+                diff["added"].append(f"{field}: 新增")
+            else:
+                diff["modified"].append(f"{field}: 已修改")
+
+    return diff
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "用法: python generate_resume.py read|build|init ..."}, ensure_ascii=False))
+        print(json.dumps({"error": "用法: python generate_resume.py read|build|init|setup|version ..."}, ensure_ascii=False))
         return 1
     command = sys.argv[1]
     if command == "read":
@@ -930,20 +1307,33 @@ def main() -> int:
         return 0 if result.get("status") == "success" else 1
     elif command == "build":
         if len(sys.argv) < 4:
-            print(json.dumps({"error": "用法: python generate_resume.py build <json_file> <output_path>"}, ensure_ascii=False))
+            print(json.dumps({"error": "用法: python generate_resume.py build <json_file> <output_path> [--pages 1|2]"}, ensure_ascii=False))
             return 1
         json_path = sys.argv[2]
         output_path = sys.argv[3]
+        pages = 1
+        if "--pages" in sys.argv:
+            idx = sys.argv.index("--pages")
+            if idx + 1 < len(sys.argv):
+                try:
+                    pages = int(sys.argv[idx + 1])
+                    if pages not in (1, 2):
+                        print(json.dumps({"error": "--pages 仅支持 1 或 2"}, ensure_ascii=False))
+                        return 1
+                except ValueError:
+                    print(json.dumps({"error": "--pages 参数必须为整数 1 或 2"}, ensure_ascii=False))
+                    return 1
         if not os.path.isfile(json_path):
             print(json.dumps({"error": f"JSON 文件不存在: {json_path}"}, ensure_ascii=False))
             return 1
         with open(json_path, "r", encoding="utf-8") as f:
             resume_data = json.load(f)
+        resume_data = map_resume(resume_data)
         errors = validate_resume(resume_data)
         if errors:
-            print(json.dumps({"error": "简历校验失败", "details": errors}, ensure_ascii=False, indent=2))
+            print(json.dumps({"error": "简历校验失败", "details": errors, "hint": "字段已自动映射，但仍缺少必填字段。请补充 name/phone/email/objective 后重试"}, ensure_ascii=False, indent=2))
             return 1
-        html_content = generate_html(resume_data)
+        html_content = generate_html(resume_data, pages=pages)
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
@@ -951,6 +1341,7 @@ def main() -> int:
             "status": "success",
             "output_path": os.path.abspath(output_path),
             "file_size": len(html_content),
+            "pages": pages,
         }, ensure_ascii=False, indent=2))
         return 0
     elif command == "init":
@@ -965,8 +1356,23 @@ def main() -> int:
         return 0
     elif command == "setup":
         return _cmd_setup()
+    elif command == "version":
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "用法: python generate_resume.py version save|list|diff|restore ..."}, ensure_ascii=False))
+            return 1
+        action = sys.argv[2]
+        json_path = sys.argv[3] if len(sys.argv) >= 4 else ""
+        version_name = sys.argv[4] if len(sys.argv) >= 5 else ""
+        return _cmd_version(action, json_path, version_name)
+    elif command == "map":
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "用法: python generate_resume.py map <json_file> [output_path]"}, ensure_ascii=False))
+            return 1
+        json_path = sys.argv[2]
+        output_path = sys.argv[3] if len(sys.argv) >= 4 else ""
+        return _cmd_map(json_path, output_path)
     else:
-        print(json.dumps({"error": f"未知命令: {command}，支持 read / build / init / setup"}, ensure_ascii=False))
+        print(json.dumps({"error": f"未知命令: {command}，支持 read / build / init / setup / version / map"}, ensure_ascii=False))
         return 1
 
 
