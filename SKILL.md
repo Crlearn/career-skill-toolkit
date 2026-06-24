@@ -724,7 +724,7 @@ python generate_resume.py map <json_file> [output_path]
 - `portfolio`：作品集模块，可选。每项包含 title（必填）、url（可选）
 - `self_evaluation`：支持两种格式 — 纯文本字符串 或 分点数组 `[{label, text}]`
 
-**字段映射表**（非标准字段名自动映射为标准字段）：
+**字段映射表**（非标准字段名自动映射为标准字段，**匹配时大小写不敏感**，如 "Name"、"Phone" 也能正确映射）：
 
 | 标准字段 | 可识别的别名 |
 |---------|------------|
@@ -745,14 +745,20 @@ python generate_resume.py map <json_file> [output_path]
 | 命令 | 用法 | 说明 |
 |------|------|------|
 | `read` | `python generate_resume.py read <文件路径>` | 读取 PDF/Word/TXT 简历 |
-| `build` | `python generate_resume.py build <json文件> <输出路径> [--pages 1\|2]` | 从 JSON 生成 HTML 简历（自动字段映射+校验） |
+| `build` | `python generate_resume.py build <json文件> <输出路径> [--pages N]` | 从 JSON 生成 HTML 简历（自动字段映射+校验） |
 | `init` | `python generate_resume.py init [输出路径]` | 生成空白简历 JSON 模板 |
 | `setup` | `python generate_resume.py setup` | 一键初始化（检查依赖+创建模板文件） |
 | `map` | `python generate_resume.py map <json文件> [输出路径]` | 字段映射：查看非标准字段的映射结果 |
 | `version save` | `python generate_resume.py version save <json> <名称>` | 保存当前简历版本 |
 | `version list` | `python generate_resume.py version list` | 列出所有已保存版本 |
 | `version diff` | `python generate_resume.py version diff <v1> <v2>` | 对比两个版本的差异 |
-| `version restore` | `python generate_resume.py version restore <名称>` | 回滚到指定版本 |
+| `version restore` | `python generate_resume.py version restore <名称> [output_path]` | 回滚到指定版本（可选指定输出路径） |
+
+**版本管理可选参数**：
+
+| 参数 | 用法 | 说明 |
+|------|------|------|
+| `--versions-dir` | `python generate_resume.py version --versions-dir <path> <子命令>` | 自定义版本存储目录（默认为脚本同目录下的 `versions/`） |
 
 **build 校验规则**：必填字段 name、phone、email、objective；教育经历必填 school、degree、major、period。校验前会自动执行字段映射。
 

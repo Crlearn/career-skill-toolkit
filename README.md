@@ -325,14 +325,20 @@ BOSS直聘/拉勾/猎聘投递跟踪与跟进节奏：
 | 脚本 | 用法 |
 |------|------|
 | `generate_resume.py read <file>` | 读取 PDF/Word/TXT 简历，输出 JSON 格式 |
-| `generate_resume.py build <json> <output> [--pages 1\|2]` | 读取 JSON，生成 HTML 简历（自动字段映射，默认1页，`--pages 2` 生成2页版） |
+| `generate_resume.py build <json> <output> [--pages N]` | 读取 JSON，生成 HTML 简历（自动字段映射，默认1页，`--pages N` 指定页数） |
 | `generate_resume.py init [output]` | 生成空白简历 JSON 模板 |
 | `generate_resume.py setup` | 一键初始化（检查依赖+创建模板文件） |
 | `generate_resume.py map <json> [output]` | 字段映射：将非标准字段名映射为标准模板字段 |
 | `generate_resume.py version save <json> <name>` | 保存当前简历版本 |
 | `generate_resume.py version list` | 列出所有已保存版本 |
 | `generate_resume.py version diff <v1> <v2>` | 对比两个版本的差异 |
-| `generate_resume.py version restore <name>` | 回滚到指定版本 |
+| `generate_resume.py version restore <name> [output_path]` | 回滚到指定版本（可选指定输出路径） |
+
+**版本管理可选参数**：
+
+| 参数 | 用法 | 说明 |
+|------|------|------|
+| `--versions-dir` | `generate_resume.py version --versions-dir <path> <子命令>` | 自定义版本存储目录（默认为脚本同目录下的 `versions/`） |
 
 **字段映射**：`build` 命令会自动将"姓名"→name、"手机"→phone 等非标准字段名映射为标准字段，用户 JSON 字段名不匹配时无需手动修改。
 
