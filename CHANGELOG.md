@@ -1,5 +1,34 @@
 # 更新日志
 
+## v1.1.0 — 2026-06-25
+
+### 修复
+- 隐私脱敏：文档和模板中所有具体个人信息替换为通用占位符（XXXX-XX / 13XXXXXXXXX / xxx@example.com）
+- .gitignore 改为通用规则，移除个人姓名
+- 打招呼用语改为可选，默认不自动生成
+- 求职类型补充"兼职"选项
+- `_esc()` 添加 XSS 安全注释，明确用户输入转义要求
+- `_diff_resume()` 复合键改用元组 `(company, role, period)`，避免同公司不同角色冲突
+- `_map_dict()` 新增大小写不敏感匹配，统一与 `_map_field()` 逻辑
+- `_cmd_version()` 重构参数传递，不再直接操作 `sys.argv`
+- `version restore` 默认输出到脚本目录，保持路径一致
+- `validate_resume()` 统一返回 `dict` 类型，消除返回值不一致
+- 提取 `_safe_filename()` 工具函数，消除重复代码
+- .gitignore 收窄通配规则 `*_resume_*.json` 替代 `*_*.json`
+- `read_docx()` 改为返回 dict 结构，不再静默吞掉异常
+
+### 新增
+- 字段映射系统（`map` 命令）：中英文别名自动映射为标准模板字段
+- 版本管理（`version save/list/diff/restore`）：简历版本保存、对比、回滚
+- `--pages N` 支持任意正整数页数（不再限制 1 或 2）
+- `--versions-dir <path>` 支持自定义版本存储目录
+- `version restore` 支持可选输出路径参数
+- `experience[].tags` 字段：与 JD 关键词匹配的标签
+- `core_advantages` 字段：核心优势模块，显示在 Header 下方
+
+### 文档
+- 同步更新 SKILL.md 和 README.md
+
 ## v1.0.0 — 2026-06-24
 
 ### 新增
