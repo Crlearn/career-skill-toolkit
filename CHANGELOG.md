@@ -5,7 +5,6 @@
 ### 修复
 - 隐私脱敏：文档和模板中所有具体个人信息替换为通用占位符（XXXX-XX / 13XXXXXXXXX / xxx@example.com）
 - .gitignore 改为通用规则，移除个人姓名
-- 打招呼用语改为可选，默认不自动生成
 - 求职类型补充"兼职"选项
 - `_esc()` 添加 XSS 安全注释，明确用户输入转义要求
 - `_diff_resume()` 复合键改用元组 `(company, role, period)`，避免同公司不同角色冲突
@@ -16,6 +15,7 @@
 - 提取 `_safe_filename()` 工具函数，消除重复代码
 - .gitignore 收窄通配规则 `*_resume_*.json` 替代 `*_*.json`
 - `read_docx()` 改为返回 dict 结构，不再静默吞掉异常
+- 从 Git 历史中彻底清除敏感文件（简历 JSON/HTML、原始 PDF）
 
 ### 新增
 - 字段映射系统（`map` 命令）：中英文别名自动映射为标准模板字段
@@ -26,8 +26,15 @@
 - `experience[].tags` 字段：与 JD 关键词匹配的标签
 - `core_advantages` 字段：核心优势模块，显示在 Header 下方
 
+### 规则优化
+- 打招呼用语改为核心优势确定后自动生成（原为可选，需用户要求）
+- Step 2.5 新增内置推荐机制：AI 主动推荐核心优势组合方案，用户选择即可
+- 新增流程回归规则：AI 偏离预期时必须重新阅读文档确认流程
+- 新增单页内容填充规则：单页简历应尽量填满，底部空白不超过 15%
+- 示例/模板中具体项目名和技术栈替换为通用占位符（XX项目/XX框架/XX工具A等）
+
 ### 文档
-- 同步更新 SKILL.md 和 README.md
+- 同步更新 SKILL.md、PROMPT-MERGED.md、README.md、career-tracker.md、boss-greeting.md
 
 ## v1.0.0 — 2026-06-24
 
