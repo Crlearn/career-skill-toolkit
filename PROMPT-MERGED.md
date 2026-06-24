@@ -1727,7 +1727,7 @@ Q1: [问题] → 评级: [✅/⚠️/🔴/❌]
       "section": "项目经历",
       "company": "智慧停车场管理系统",
       "role": "Java后端开发",
-      "period": "2025.12-至今",
+      "period": "XXXX.XX-至今",
       "bullets": [
         {"label": "微服务架构", "text": "..."},
         {"label": "数据库设计", "text": "..."}
