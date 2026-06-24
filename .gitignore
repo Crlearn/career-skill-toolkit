@@ -17,6 +17,13 @@ ResumeSkills-main/
 resume_master.json
 career_tracker.json
 
+# 生成的简历文件（含个人信息，不上传）
+resume_java_dev.*
+resume_test_engineer.*
+
+# 原始简历文件（含个人信息，不上传）
+*.pdf
+
 # 简历版本文件（用户本地保存，不上传）
 resume_versions/
 
