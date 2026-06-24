@@ -8,8 +8,8 @@ Resume-Optimizer-main/
 ResumeSkills-main/
 
 # 个人信息 / 敏感数据（含姓名、手机、邮箱、出生日期等，不可上传）
-赵晨旭_*.json
-赵晨旭_*.html
+*_*.json
+*_*.html
 resume_master.json
 career_tracker.json
 
