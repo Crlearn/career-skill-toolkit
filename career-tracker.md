@@ -91,24 +91,24 @@ description: |
 ```json
 {
   "version": "1.0",
-  "last_updated": "2026-06-24",
+  "last_updated": "XXXX-XX-XX",
   "applications": [
     {
       "id": 1,
       "company": "飞虎互动",
       "role": "Java开发工程师",
       "platform": "BOSS直聘",
-      "applied_date": "2026-06-20",
+      "applied_date": "XXXX-XX-XX",
       "status": "已读未回",
       "read": true,
       "replied": false,
-      "next_followup": "2026-06-23",
+      "next_followup": "XXXX-XX-XX",
       "fit_score": "B",
       "resume_version": "姓名_岗位_v1.json",
       "notes": "HR活跃度高，岗位刚发布",
       "followup_history": [
         {
-          "date": "2026-06-20",
+          "date": "XXXX-XX-XX",
           "action": "首次投递",
           "message": "您好，看到贵司Java开发工程师岗位非常匹配..."
         }
