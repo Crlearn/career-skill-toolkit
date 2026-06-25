@@ -37,9 +37,11 @@ D:\Meet\
 
 ---
 
-## 快速使用对照表
+## 快速开始
 
-### 方式一：在 TRAE 中直接使用（推荐）
+本项目支持两种使用方式：
+
+### 方式一：在 TRAE / Claude Code / Codex 等agent中直接使用（推荐）
 
 在当前对话中直接提出需求，AI 会调用对应 Skill：
 
@@ -56,17 +58,17 @@ D:\Meet\
 | 面试准备 | "帮我准备面试" | 技能盘点→故事库→问题预测 | 面试报告 + 学习资源 |
 | 薪资谈判 | "帮我谈薪资" | 市场调研→谈判策略 | 谈判话术 |
 
----
-
 ### 方式二：在其他 AI 工具中使用
 
-复制 `PROMPT-MERGED.md` 全部内容，粘贴到 Claude / ChatGPT / DeepSeek 的第一条消息中，然后正常对话即可。
+复制 `PROMPT-MERGED.md` 全部内容，粘贴到 DeepSeek / 千问 等网页版，正常对话即可。
 
 **使用步骤**：
 1. 打开 `PROMPT-MERGED.md`，全选复制
-2. 打开 Claude / ChatGPT / DeepSeek
+2. 打开 DeepSeek / 千问 等网页版
 3. 粘贴到第一条消息，发送
 4. 提供简历 + JD，开始对话
+
+> **注意**：`PROMPT-MERGED.md` 仅包含简历优化、JD 分析、面试准备的核心流程，**不包含**投递跟踪、薪资谈判、面试复盘、HR 审核等独立 Skill 的完整功能，也无法调用 `generate_resume.py` 脚本和 `references/` 目录下的参考文档。如需完整功能，推荐使用方式一。
 
 ---
 
@@ -361,29 +363,6 @@ BOSS直聘/拉勾/猎聘投递跟踪与跟进节奏：
 | [resume-application-agent-skill](https://github.com/) | - | 申请表填写、求职跟进流程参考 |
 
 > 以上项目仅供学习参考，本项目已对其中的思路和方法进行了重新整理、本土化适配（针对国内招聘场景）和扩展，所有代码和文档均为原创。
-
----
-
-## 关于 PROMPT-MERGED.md
-
-`PROMPT-MERGED.md` 是本项目所有 Skill 的**精简合并版**，适用于以下场景：
-
-| 使用场景 | 推荐方式 |
-|---------|---------|
-| **Trae IDE / VS Code 等支持 Skill 的 Agent** | 直接打开项目，Agent 会自动加载各独立 Skill 文件（SKILL.md、SKILL-INTERVIEW.md 等），功能完整 |
-| **网页版 AI（ChatGPT、文心一言等）** | 复制 `PROMPT-MERGED.md` 内容作为系统提示词，可调用简历优化、JD 分析、面试准备等核心功能 |
-
-**PROMPT-MERGED.md 的局限性**：
-
-- 仅包含简历优化、JD 分析、面试准备的核心流程，**不包含**投递跟踪、薪资谈判、面试复盘、HR 审核等独立 Skill 的完整功能
-- 无法调用 `generate_resume.py` 脚本（PDF/Word 读取、HTML 生成）
-- 无法引用 `references/` 目录下的独立参考文档（JD 分析规则、STAR 方法论等）
-- 适合快速使用，但功能不如完整项目丰富
-
-**推荐用法**：
-
-- 如果你使用支持 Skill 的 AI Agent（如 Trae IDE），**直接克隆本项目**，Agent 会自动识别并加载所有 Skill
-- 如果你使用网页版 AI，复制 `PROMPT-MERGED.md` 作为临时方案，但建议后续迁移到完整项目以获得全部功能
 
 ---
 
