@@ -29,7 +29,7 @@ description: |
 
 ## 投递记录格式
 
-每条投递记录包含以下字段：
+每条投递记录包含以下字段（建议存储在 `cases/<用户名>/tracker/application-tracker.csv`，模板见 `assets/templates/application-tracker.csv`）：
 
 ```
 | # | 公司 | 岗位 | 平台 | 投递日期 | 状态 | 已读 | 回复 | 下次跟进 | 匹配评分 | 使用的简历版本 | 备注 |

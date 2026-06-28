@@ -17,9 +17,14 @@ ResumeSkills-main/
 resume_master.json
 career_tracker.json
 
+# 参考项目目录（仅供借鉴）
+About/
+
 # 生成的简历文件（含个人信息，不上传）
 resume_java_dev.*
 resume_test_engineer.*
+resume_*.json
+resume_*.html
 
 # 原始简历文件（含个人信息，不上传）
 *.pdf

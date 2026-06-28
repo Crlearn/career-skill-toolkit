@@ -7,8 +7,8 @@
 ## 项目文件结构
 
 ```
-D:\Meet\
-├── SKILL.md                    # 简历优化主 Skill（核心流程+证据链+面试拷问+打招呼话术）
+project-root/
+├── SKILL.md                    # 简历优化主 Skill（核心流程+Intake+证据链+面试拷问+打招呼话术）
 ├── SKILL-INTERVIEW.md          # 面试准备 Skill
 ├── SKILL-SALARY.md             # 薪资谈判 Skill（含国内薪资谈判专章）
 ├── SKILL-TOOLKIT.md            # 求职工具包 Skill（含面试复盘模板）
@@ -19,15 +19,29 @@ D:\Meet\
 ├── career_tracker.json         # 投递跟踪数据文件
 ├── CHANGELOG.md                # 版本变更日志
 ├── LICENSE                     # MIT 开源协议
+├── assets/                     # 模板资产
+│   └── templates/
+│       ├── profile.yaml        # 用户画像模板（Intake 产出）
+│       ├── experience-assets.md # 经历资产库模板
+│       ├── strengths.md        # 优势挖掘模板
+│       └── application-tracker.csv # 投递跟踪 CSV 模板
+├── scripts/                    # 辅助脚本
+│   └── score_job_matches.py    # 岗位匹配初筛 + 招聘骗局风险检测
+├── cases/                      # 求职案例目录（多用户隔离）
+│   └── example/
+│       ├── raw/                # 原始简历/JD 材料
+│       ├── versions/           # 简历版本
+│       └── tracker/            # 投递跟踪数据
 ├── references/                 # 参考文档
-│   ├── jd-analysis-rules.md    # JD 分析规则
+│   ├── jd-analysis-rules.md    # JD 分析规则（含公开评分维度）
 │   ├── star-methodology.md     # STAR 重写方法论
 │   ├── writing-rules.md        # 写作规则（含反 AI-slop 禁词表）
 │   ├── ats-formatting.md       # ATS 格式规范
 │   ├── evidence-chain.md       # 优势证据链
 │   ├── truth-boundary.md       # 真实性边界与证据分级
 │   ├── interview-grilling.md   # 面试拷问框架
-│   └── boss-greeting.md        # BOSS 打招呼话术库
+│   ├── boss-greeting.md        # BOSS 打招呼话术库
+│   └── platform-boundaries.md  # 平台数据使用规范与安全边界
 ├── .github/                    # GitHub 配置
 │   ├── ISSUE_TEMPLATE/         # Issue 模板
 │   └── PULL_REQUEST_TEMPLATE.md
