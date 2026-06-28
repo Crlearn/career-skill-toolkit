@@ -280,7 +280,7 @@ C3 声明不允许在没有指标定义和记录的情况下写入简历。
 
 所有经历的大仓库，按 JD 从中抽取对应版本：
 - **主简历 JSON**：包含全部经历、技能、项目，不限篇幅，由用户自行维护
-- **定向简历 JSON**：从主简历中抽取与 JD 最匹配的内容，控制在 1 页
+- **定向简历 JSON**：从主简历中抽取与 JD 最匹配的内容，默认单页
 - 每个 experience 条目带 `tags` 字段，方便按 JD 关键词筛选
 - AI 不会自动创建主简历文件，用户生成定向简历后可选择归入主简历库
 
@@ -341,7 +341,7 @@ BOSS直聘/拉勾/猎聘投递跟踪与跟进节奏：
 | 脚本 | 用法 |
 |------|------|
 | `generate_resume.py read <file>` | 读取 PDF/Word/TXT 简历，输出 JSON 格式 |
-| `generate_resume.py build <json> <output> [--pages N]` | 读取 JSON，生成 HTML 简历（自动字段映射，默认1页，`--pages N` 指定页数） |
+| `generate_resume.py build <json> <output> [--pages N]` | 读取 JSON，生成 HTML 简历（自动字段映射，默认单页，自动判断是否需要双页，生成前询问用户） |
 | `generate_resume.py init [output]` | 生成空白简历 JSON 模板 |
 | `generate_resume.py setup` | 一键初始化（检查依赖+创建模板文件） |
 | `generate_resume.py map <json> [output]` | 字段映射：将非标准字段名映射为标准模板字段 |
@@ -349,6 +349,7 @@ BOSS直聘/拉勾/猎聘投递跟踪与跟进节奏：
 | `generate_resume.py version list` | 列出所有已保存版本 |
 | `generate_resume.py version diff <v1> <v2>` | 对比两个版本的差异 |
 | `generate_resume.py version restore <name> [output_path]` | 回滚到指定版本（可选指定输出路径） |
+| `scripts/score_job_matches.py --profile <yaml> --jd <jsonl> --output <csv>` | 岗位匹配初筛 + 招聘骗局风险检测（关键词评分，固定权重，可复现） |
 
 **版本管理可选参数**：
 
@@ -386,7 +387,7 @@ BOSS直聘/拉勾/猎聘投递跟踪与跟进节奏：
 A：手动复制简历文本粘贴给 AI，脚本会自动降级处理。
 
 **Q：简历只有一页塞不下怎么办？**
-A：按优先级精简内容（删除最不相关的项目或 bullet），不要扩到第二页。
+A：生成前 AI 会自动评估内容量，内容过多时会建议使用双页。你也可以主动要求双页。如果仍想保持单页，按优先级精简内容。
 
 **Q：没有项目经历怎么办？**
 A：在经历挖掘阶段（Step 1.3）尽可能回忆课程项目、自学项目、开源贡献等。
